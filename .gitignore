@@ -2,4 +2,5 @@
 Thumbs.db
 *.zip
 部门项目管理台-临时分享版-*/
-发布到GitHub.cmd
+publish-github.cmd
+publish-github.ps1
