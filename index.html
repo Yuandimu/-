@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>部门项目与绩效管理台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">PM</div>
+        <div>
+          <strong>项目管理台</strong>
+          <span>Project & Performance</span>
+        </div>
+      </div>
+      <nav>
+        <button class="nav-item active" data-view="dashboard">总览</button>
+        <button class="nav-item" data-view="projects">项目管理</button>
+        <button class="nav-item" data-view="performance">绩效计算</button>
+      </nav>
+      <div class="sidebar-note">
+        <span id="cloud-sidebar-status">云端尚未连接</span>
+        <small>登录后，部门成员将使用同一份共享数据。</small>
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">部门工作月报</p>
+          <h1 id="page-title">项目总览</h1>
+        </div>
+        <div class="topbar-actions">
+          <label class="month-picker">
+            <span>查看月份</span>
+            <input id="month-filter" type="month">
+          </label>
+          <button class="btn secondary cloud-status-btn" id="cloud-status-btn">
+            <i></i><span>云端登录</span>
+          </button>
+          <button class="btn secondary" id="import-data-btn">导入共享数据</button>
+          <input id="import-data-input" class="hidden" type="file" accept=".json,application/json">
+          <button class="btn secondary" id="export-data-btn">导出共享数据</button>
+          <button class="btn secondary" id="export-btn">导出 Excel</button>
+          <button class="btn primary" id="add-project-btn">+ 新建项目</button>
+        </div>
+      </header>
+
+      <section id="dashboard-view" class="view active">
+        <div class="stats-grid">
+          <article class="stat-card accent">
+            <span>当月项目</span>
+            <strong id="stat-projects">0</strong>
+            <small id="stat-temp">0 个临时任务</small>
+          </article>
+          <article class="stat-card">
+            <span>进行中</span>
+            <strong id="stat-active">0</strong>
+            <small>按当前项目进度统计</small>
+          </article>
+          <article class="stat-card">
+            <span>平均进度</span>
+            <strong id="stat-progress">0%</strong>
+            <small>当月全部项目</small>
+          </article>
+        </div>
+
+        <div class="section-heading">
+          <div>
+            <h2>成员工作台</h2>
+            <p>查看每位成员的项目角色、进展和绩效</p>
+          </div>
+          <button class="btn ghost" id="manage-member-btn">成员管理</button>
+        </div>
+        <div id="member-grid" class="member-grid"></div>
+
+        <section class="panel gantt-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>项目甘特图</h2>
+              <p id="gantt-caption">当月项目排期与当前进度</p>
+            </div>
+          </div>
+          <div id="gantt-chart" class="gantt-chart"></div>
+        </section>
+      </section>
+
+      <section id="projects-view" class="view">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>项目清单</h2>
+              <p>点击任意项目查看完整信息与里程碑</p>
+            </div>
+            <div class="filters">
+              <select id="priority-filter">
+                <option value="">全部优先级</option>
+                <option value="P0">P0</option>
+                <option value="P1">P1</option>
+                <option value="P2">P2</option>
+              </select>
+              <input id="project-search" type="search" placeholder="搜索项目名称">
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>项目名称</th>
+                  <th>优先级</th>
+                  <th>Owner</th>
+                  <th>核心成员</th>
+                  <th>支持者</th>
+                  <th>当前里程碑</th>
+                  <th>项目周期</th>
+                  <th>标签</th>
+                  <th>进度</th>
+                </tr>
+              </thead>
+              <tbody id="project-table-body"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="performance-view" class="view">
+        <div class="performance-layout">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <h2>当月绩效计算</h2>
+                <p>按上传文档规则计算，缺项自动归一化</p>
+              </div>
+              <div class="performance-toolbar">
+                <select id="performance-member"></select>
+                <button class="btn secondary" id="recalculate-performance-btn">重新计算</button>
+                <button class="btn danger" id="clear-performance-btn">一键清空</button>
+                <button class="btn secondary" id="export-performance-btn">单独导出</button>
+              </div>
+            </div>
+            <div id="performance-form" class="performance-form"></div>
+          </section>
+          <aside class="score-card">
+            <span>当月绩效得分</span>
+            <strong id="performance-score">-</strong>
+            <div id="performance-level" class="score-level">等待填写</div>
+            <div class="score-breakdown" id="score-breakdown"></div>
+            <button class="btn primary wide" id="save-performance-btn">保存本月绩效</button>
+          </aside>
+        </div>
+        <section class="panel rule-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>计算规则说明</h2>
+            </div>
+          </div>
+          <div id="rules-list" class="rules-list"></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="project-dialog" class="modal">
+    <form method="dialog" id="project-form">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">PROJECT DETAIL</p>
+          <h2 id="project-dialog-title">新建项目</h2>
+        </div>
+        <button type="button" class="icon-btn close-modal" aria-label="关闭">×</button>
+      </div>
+      <input type="hidden" name="id">
+      <div class="form-grid">
+        <label class="full">项目名称<input name="name" required placeholder="请输入项目名称"></label>
+        <label>优先级<select name="priority"><option>P0</option><option selected>P1</option><option>P2</option></select></label>
+        <label>项目整体进度<input name="progress" type="number" min="0" max="100" value="0" readonly></label>
+        <label>开始日期<input name="startDate" type="date" required></label>
+        <label>截止日期<input name="endDate" type="date" required></label>
+        <label class="check-label"><input name="temporary" type="checkbox"> 临时任务</label>
+        <label class="check-label"><input name="crossDepartment" type="checkbox"> 跨部门</label>
+        <label class="full">参与成员与角色
+          <div class="assignment-role-tabs">
+            <button type="button" class="assignment-role-tab active" data-role-tab="owner">Owner</button>
+            <button type="button" class="assignment-role-tab" data-role-tab="core">核心成员</button>
+            <button type="button" class="assignment-role-tab" data-role-tab="support">支持者</button>
+          </div>
+          <div id="assignment-fields" class="assignment-fields"></div>
+        </label>
+        <label class="full">备注信息<textarea name="notes" rows="3" placeholder="背景、风险、协作事项等"></textarea></label>
+      </div>
+      <div class="milestone-heading">
+        <h3>项目里程碑及产出</h3>
+        <button type="button" class="btn ghost small" id="add-milestone-btn">+ 添加里程碑</button>
+      </div>
+      <div id="milestone-fields" class="milestone-fields"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn danger hidden" id="delete-project-btn">删除项目</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn secondary close-modal">取消</button>
+        <button type="submit" class="btn primary">保存项目</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="member-dialog" class="modal member-modal">
+    <form method="dialog" id="member-form">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">TEAM MANAGEMENT</p>
+          <h2>成员管理</h2>
+        </div>
+        <button type="button" class="icon-btn close-member-modal" aria-label="关闭">×</button>
+      </div>
+      <section class="member-management-section">
+        <div class="management-heading">
+          <div>
+            <h3>现有成员</h3>
+            <p>查看或删除部门成员</p>
+          </div>
+          <span id="member-count" class="count-badge">0 人</span>
+        </div>
+        <div id="member-management-list" class="member-management-list"></div>
+      </section>
+      <section class="member-management-section add-member-section">
+        <div class="management-heading">
+          <div>
+            <h3>添加成员</h3>
+            <p>填写姓名和岗位后加入部门</p>
+          </div>
+        </div>
+        <div class="add-member-grid">
+          <label>姓名<input name="name" required placeholder="例如：陈晓"></label>
+          <label>岗位<input name="title" required placeholder="例如：培训运营"></label>
+          <button type="submit" class="btn primary">添加成员</button>
+        </div>
+      </section>
+    </form>
+  </dialog>
+
+  <dialog id="cloud-dialog" class="modal cloud-modal">
+    <div class="cloud-dialog-content">
+      <div class="modal-heading">
+        <div>
+          <p class="eyebrow">CLOUD SYNC</p>
+          <h2>部门云端共享</h2>
+        </div>
+        <button type="button" class="icon-btn close-cloud-modal" aria-label="关闭">×</button>
+      </div>
+      <div id="cloud-signed-out">
+        <p class="cloud-description">使用部门邮箱登录。系统会发送一次性登录链接，无需设置密码。</p>
+        <form id="cloud-login-form">
+          <label>邮箱地址<input name="email" type="email" required placeholder="name@company.com"></label>
+          <button type="submit" class="btn primary wide">发送登录链接</button>
+        </form>
+      </div>
+      <div id="cloud-signed-in" class="hidden">
+        <div class="cloud-account">
+          <span>当前账号</span>
+          <strong id="cloud-user-email"></strong>
+        </div>
+        <div class="cloud-actions">
+          <button type="button" class="btn primary" id="cloud-refresh-btn">立即同步</button>
+          <button type="button" class="btn secondary" id="cloud-signout-btn">退出登录</button>
+        </div>
+      </div>
+      <p id="cloud-message" class="cloud-message"></p>
+    </div>
+  </dialog>
+
+  <template id="milestone-template">
+    <div class="milestone-row">
+      <div class="milestone-main">
+        <input data-field="name" placeholder="里程碑及产出">
+        <input data-field="deadline" type="date">
+        <span class="milestone-complete-badge">未完成</span>
+        <button type="button" class="icon-btn remove-milestone" aria-label="删除">×</button>
+      </div>
+      <div class="milestone-member-progress"></div>
+    </div>
+  </template>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
